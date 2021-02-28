@@ -27,7 +27,6 @@
 
 #ifndef __MODEMPROBE_H
 #define __MODEMPROBE_H
-
 #include <stdint.h>
 #include <stdlib.h>
 #include <complex.h>

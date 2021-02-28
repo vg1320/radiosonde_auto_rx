@@ -103,12 +103,10 @@ def position_info(listener, balloon):
 def read_last_position(filename):
     ''' Read in a a sonde log file, and return the last lat/lon/alt '''
 
-    _last = None
-    _f = open(filename, 'r')
-    for line in _f:
-        _last = line
-    
-    return _last.split(',')
+    _data = np.genfromtxt(filename,delimiter=',', dtype=None)
+    _last = _data[-1]
+
+    return _last
 
 
 if __name__ == '__main__':
@@ -122,7 +120,7 @@ if __name__ == '__main__':
 
 
     _file_list = glob.glob(args.folder + "*_sonde.log")
-    #print(_file_list)
+    print(_file_list)
 
 
     statistics = {
@@ -134,11 +132,10 @@ if __name__ == '__main__':
     for _file in _file_list:
         try:
             _last_entry = read_last_position(_file)
-        except Exception as e:
-            print("Error processing file %s: " % _file + str(e))
+        except:
             continue
-
-        _last_pos = (float(_last_entry[3]),float(_last_entry[4]),float(_last_entry[5]))
+        print(_last_entry)
+        _last_pos = (_last_entry[3],_last_entry[4],_last_entry[5])
 
         _stats = position_info((args.lat, args.lon, args.alt), _last_pos)
 
@@ -162,14 +159,14 @@ if __name__ == '__main__':
     print("    Detail: %.1f deg elev, %.1f deg bearing" % (
         statistics['furthest']['elev'],
         statistics['furthest']['bearing']))
-    print("    Last Telemetry: %s" % str(",".join(statistics['furthest']['telem'])))
+    print("    Last Telemetry: %s" % str(statistics['furthest']['telem']))
     
 
     print("Lowest Elevation: %.1f degrees" % statistics['lowest']['elev'])
     print("    Detail: %.1f km range, %.1f deg bearing" % (
         statistics['lowest']['range'],
         statistics['lowest']['bearing']))
-    print("    Last Telemetry: %s" % str(",".join(statistics['lowest']['telem'])))
+    print("    Last Telemetry: %s" % str(statistics['lowest']['telem']))
 
 
 

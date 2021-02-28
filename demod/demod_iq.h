@@ -35,7 +35,6 @@ typedef struct {
     int ch;       // select channel
     //
     int symlen;
-    int symhd;
     float sps;    // samples per symbol
     float _spb;   // samples per bit
     float br;     // baud rate
@@ -43,15 +42,14 @@ typedef struct {
     ui32_t sample_in;
     ui32_t sample_out;
     ui32_t delay;
-    ui32_t sc;
     int buffered;
     int L;
     int M;
     int K;
     float *match;
     float *bufs;
-    float mv;
-    ui32_t mv_pos;
+    float dc_ofs;
+    float dc;
     //
     int N_norm;
     int Nvar;
@@ -63,9 +61,8 @@ typedef struct {
     // IQ-data
     int opt_iq;
     int N_IQBUF;
+    float complex *raw_iqbuf;
     float complex *rot_iqbuf;
-    float complex F1sum;
-    float complex F2sum;
 
     //
     char *rawbits;
@@ -79,12 +76,8 @@ typedef struct {
     // DFT
     dft_t DFT;
 
-    // dc offset
-    int opt_dc;
-    int locked;
-    double dc;
-    double Df;
-    double dDf;
+    double df;
+    int len_sq;
 
     ui32_t sample_posframe;
     ui32_t sample_posnoise;
@@ -92,35 +85,6 @@ typedef struct {
     double V_noise;
     double V_signal;
     double SNRdB;
-
-    // decimate
-    int opt_IFmin;
-    int decM;
-    ui32_t sr_base;
-    ui32_t dectaps;
-    ui32_t sample_dec;
-    ui32_t lut_len;
-    float complex *decXbuffer;
-    float complex *decMbuf;
-    float complex *ex; // exp_lut
-    double xlt_fq;
-
-    // IF: lowpass
-    int opt_lp;
-    int lpIQ_bw;
-    float lpIQ_fbw;
-    int lpIQtaps; // ui32_t
-    float *ws_lpIQ0;
-    float *ws_lpIQ1;
-    float *ws_lpIQ;
-    float complex *lpIQ_buf;
-
-    // FM: lowpass
-    int lpFM_bw;
-    int lpFMtaps; // ui32_t
-    float *ws_lpFM;
-    float *lpFM_buf;
-	float *fm_buffer;
 
 } dsp_t;
 
@@ -136,12 +100,16 @@ typedef struct {
 
 float read_wav_header(pcm_t *, FILE *);
 int f32buf_sample(dsp_t *, int);
-int read_slbit(dsp_t *, int*, int, int, int, float, int);
+int read_slbit(dsp_t *, int, int*, int, int, int, float, int);
+
+int getCorrDFT(dsp_t *, ui32_t, float *, ui32_t *);
+int headcmp(dsp_t *, int, ui32_t, int, int);
+int get_fqofs_rs41(dsp_t *, ui32_t, float *, float *);
+float get_bufvar(dsp_t *, int);
+float get_bufmu(dsp_t *, int);
 
 int init_buffers(dsp_t *);
 int free_buffers(dsp_t *);
 
 ui32_t get_sample(dsp_t *);
-
-int find_header(dsp_t *, float, int, int, int);
 

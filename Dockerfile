@@ -17,15 +17,14 @@ RUN apt-get update && \
   python3-requests && \
   rm -rf /var/lib/apt/lists/*
 
-# Copy in radiosonde_auto_rx
-COPY . /root/radiosonde_auto_rx
-
 # Install additional Python packages that aren't available through apt-get.
-RUN /usr/bin/pip3 --no-cache-dir install -r /root/radiosonde_auto_rx/auto_rx/requirements.txt
+RUN pip3 --no-cache-dir install \
+  flask-socketio
 
-# Build the binaries.
+# Copy in radiosonde_auto_rx and build the binaries.
+COPY . /root/radiosonde_auto_rx
 RUN cd /root/radiosonde_auto_rx/auto_rx && \
-  /bin/sh build.sh
+  sh build.sh
 
 # -------------------------
 # The application container
@@ -46,7 +45,6 @@ RUN apt-get update && \
   rng-tools \
   rtl-sdr \
   sox \
-  tini \
   usbutils && \
   rm -rf /var/lib/apt/lists/*
 
@@ -56,11 +54,6 @@ COPY --from=build /usr/local/lib/python3.7/dist-packages /usr/local/lib/python3.
 # Copy auto_rx from the build container to /opt.
 COPY --from=build /root/radiosonde_auto_rx/auto_rx /opt/auto_rx
 
-# Set the working directory.
-WORKDIR /opt/auto_rx
-
-# Use tini as init.
-ENTRYPOINT ["/usr/bin/tini", "--"]
-
 # Run auto_rx.py.
-CMD ["/usr/bin/python3", "/opt/auto_rx/auto_rx.py"]
+WORKDIR /opt/auto_rx
+CMD ["python3", "/opt/auto_rx/auto_rx.py"]
